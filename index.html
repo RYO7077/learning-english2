@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>Learning English 2</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Learning English 2">
+  <meta name="theme-color" content="#1C1C1E">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="status-time" id="statusTime">9:41</span>
+    </div>
+
+    <div id="app">
+      <div class="top-bar" id="topBar">
+        <div class="stat-pill">
+          <i class="ti ti-trophy"></i>
+          <strong id="weekXpNum">0</strong><span class="xp-denom">/10000</span> XP
+        </div>
+        <div id="streakPill" class="streak-pill" style="display:none"></div>
+        <div id="medalPill" class="stat-pill medal-pill" style="display:none">
+          🥇×<strong id="medalNum">0</strong>
+        </div>
+        <div class="top-bar-divider"></div>
+        <div class="stat-pill stat-pill-dim">
+          <i class="ti ti-chart-bar"></i>
+          <strong id="totalXpNum">0</strong>
+        </div>
+        <button class="dark-toggle-btn" id="darkToggleBtn" onclick="toggleDarkMode()" title="ダークモード切替">
+          <i class="ti ti-moon" id="darkIcon"></i>
+        </button>
+      </div>
+
+      <div id="reminderArea"></div>
+
+      <div id="screenHome"></div>
+      <div id="screenSets"    style="display:none"></div>
+      <div id="screenQuiz"    style="display:none"></div>
+      <div id="screenResult"  style="display:none"></div>
+      <div id="screenConvo"   style="display:none"></div>
+      <div id="screenStats"   style="display:none"></div>
+      <div id="screenVocab"   style="display:none"></div>
+      <div id="screenQuest"   style="display:none"></div>
+      <div id="screenRanking" style="display:none"></div>
+      <div id="screenFavorite" style="display:none"></div>
+      <div id="screenFriends"  style="display:none"></div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+
+  <!-- 初回ニックネーム設定モーダル -->
+  <div id="nicknameModal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <div class="modal-icon">👋</div>
+      <div class="modal-title">ようこそ！</div>
+      <div class="modal-sub">ランキングで表示される名前を設定してください</div>
+      <input class="modal-input" id="nicknameInput" placeholder="ニックネーム（最大12文字）" maxlength="12" autocomplete="off">
+      <button class="modal-btn" onclick="saveNickname()">はじめる</button>
+    </div>
+  </div>
+
+  <script src="questions.js"></script>
+  <script src="phrases.js"></script>
+  <script src="quest_special.js"></script>
+  <script type="module" src="firebase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && !location.hostname.includes('claudeusercontent.com')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(() => console.log('Service Worker registered'))
+          .catch(err => console.log('Service Worker error:', err));
+      });
+    }
+  </script>
+</body>
+</html>
