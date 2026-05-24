@@ -2945,9 +2945,27 @@ function init() {
     const icon = document.getElementById('darkIcon');
     if (icon) { icon.classList.remove('ti-moon'); icon.classList.add('ti-sun'); }
   }
-  // 初回ニックネーム設定
+  // 初回ニックネーム設定（Firebase確認後に表示）
   if (!localStorage.getItem('le2_nickname')) {
-    document.getElementById('nicknameModal').style.display = 'flex';
+    // FB2が準備できたらFirebaseのデータを確認
+    const checkNickname = async () => {
+      if (window.FB2) {
+        try {
+          const uid = window.FB2.getMyUid();
+          const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js');
+          // FB2経由でユーザーデータを取得
+          const data = await window.FB2.getFriendData(uid);
+          if (data && data.nickname) {
+            localStorage.setItem('le2_nickname', data.nickname);
+            return; // モーダル不要
+          }
+        } catch(e) {}
+        document.getElementById('nicknameModal').style.display = 'flex';
+      } else {
+        setTimeout(checkNickname, 300);
+      }
+    };
+    setTimeout(checkNickname, 500);
   }
   // 週間1位メダルチェック（週が変わった時のみ）
   if (state._checkWeekRank) {
@@ -2974,10 +2992,14 @@ async function saveNickname() {
   const val = (document.getElementById('nicknameInput').value || '').trim();
   if (!val) { document.getElementById('nicknameInput').focus(); return; }
   document.getElementById('nicknameModal').style.display = 'none';
-  if (window.FB2) {
-    await window.FB2.registerUser(val);
-  } else {
-    localStorage.setItem('le2_nickname', val);
+  localStorage.setItem('le2_nickname', val); // まずローカルに保存
+  // FB2が準備できるまで最大3秒待ってから登録
+  for (let i = 0; i < 15; i++) {
+    if (window.FB2) {
+      await window.FB2.registerUser(val);
+      break;
+    }
+    await new Promise(r => setTimeout(r, 200));
   }
 }
 
@@ -3147,7 +3169,7 @@ let _friendsTab = 'list'; // 'list' | 'search' | 'requests'
 
 async function renderFriendsScreen() {
   const el = document.getElementById('screenFriends');
-  if (!window.FB2 || !window.FB2.isRegistered()) {
+  if (!localStorage.getItem('le2_nickname')) {
     el.innerHTML = `
       <button class="back-btn" onclick="showHome()"><i class="ti ti-arrow-left"></i> ホームに戻る</button>
       <div style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
