@@ -2587,3 +2587,23 @@ body.dark-mode .fc-btn-got   { background: #34C75930; }
   font-size: 13px;
   padding: 20px 0;
 }
+
+/* 統計画面 ニックネーム表示 */
+.stats-nickname-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.stats-nickname-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.stats-nickname-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}
