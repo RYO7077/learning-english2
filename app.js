@@ -2956,7 +2956,7 @@ function init() {
   }
   showHome();
   // フレンド申請バッジ更新
-  setTimeout(refreshFriendBadge, 2000);
+  setTimeout(checkFriendBadge, 2000);
 }
 
 function toggleDarkMode() {
@@ -3131,6 +3131,228 @@ function switchRankingTab(tab) {
   renderRankingScreen();
 }
 
+
+/* =============================================
+   フレンド機能
+   ============================================= */
+
+async function showFriendsScreen() {
+  showScreen('screenFriends');
+  const el = document.getElementById('screenFriends');
+  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-tertiary)">読み込み中...</div>`;
+  await renderFriendsScreen();
+}
+
+let _friendsTab = 'list'; // 'list' | 'search' | 'requests'
+
+async function renderFriendsScreen() {
+  const el = document.getElementById('screenFriends');
+  if (!window.FB2 || !window.FB2.isRegistered()) {
+    el.innerHTML = `
+      <button class="back-btn" onclick="showHome()"><i class="ti ti-arrow-left"></i> ホームに戻る</button>
+      <div style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
+        <div style="font-size:40px;margin-bottom:12px">👋</div>
+        <div style="font-weight:600;margin-bottom:8px">ニックネームを設定してください</div>
+        <div style="font-size:13px">ランキング登録後にフレンド機能が使えます</div>
+      </div>`;
+    return;
+  }
+
+  const myUid = window.FB2.getMyUid();
+
+  // 並行取得
+  const [friends, requests] = await Promise.all([
+    window.FB2.getFriends().catch(() => []),
+    window.FB2.getPendingRequests().catch(() => []),
+  ]);
+
+  // フレンドの詳細データ取得
+  const friendDataList = await Promise.all(
+    friends.map(f => window.FB2.getFriendData(f.uid).catch(() => null))
+  );
+
+  const reqCount = requests.length;
+
+  // バッジ更新
+  const badge = document.getElementById('friendBadge');
+  if (badge) {
+    badge.style.display = reqCount > 0 ? '' : 'none';
+    badge.textContent   = reqCount;
+  }
+
+  // タブ
+  const tabs = [
+    { id: 'list',     label: `フレンド（${friends.length}）` },
+    { id: 'search',   label: '検索' },
+    { id: 'requests', label: `申請（${reqCount}）` },
+  ];
+  const tabHTML = tabs.map(t => `
+    <button class="friends-tab${_friendsTab===t.id?' active':''}" onclick="switchFriendsTab('${t.id}')">
+      ${t.label}${t.id==='requests'&&reqCount>0?` <span class="friends-req-badge">${reqCount}</span>`:''}
+    </button>`).join('');
+
+  // フレンド一覧
+  let bodyHTML = '';
+  if (_friendsTab === 'list') {
+    if (friends.length === 0) {
+      bodyHTML = `<div class="friends-empty"><i class="ti ti-users"></i><br>フレンドがいません<br><span>「検索」タブから追加しよう</span></div>`;
+    } else {
+      bodyHTML = friendDataList.map((data, i) => {
+        const f = friends[i];
+        const xp   = data ? (data.totalXp || 0) : 0;
+        const streak = data ? (data.streak || 0) : 0;
+        return `
+        <div class="friends-card">
+          <div class="friends-avatar">${esc(f.nickname.charAt(0).toUpperCase())}</div>
+          <div class="friends-info">
+            <div class="friends-name">${esc(f.nickname)}</div>
+            <div class="friends-meta">
+              <span><i class="ti ti-chart-bar"></i> ${xp.toLocaleString()} XP</span>
+              ${streak > 0 ? `<span><i class="ti ti-flame"></i> ${streak}日連続</span>` : ''}
+            </div>
+          </div>
+          <button class="friends-remove-btn" data-uid="${esc(f.uid)}" onclick="removeFriendAndRefresh('${esc(f.uid)}')">削除</button>
+        </div>`;
+      }).join('');
+    }
+
+  } else if (_friendsTab === 'search') {
+    bodyHTML = `
+      <div class="friends-search-wrap">
+        <div class="friends-search-row">
+          <input class="friends-search-input" id="friendSearchInput" placeholder="ニックネームで検索..." maxlength="12" autocomplete="off">
+          <button class="friends-search-btn" onclick="doFriendSearch()"><i class="ti ti-search"></i></button>
+        </div>
+        <div id="friendSearchResult"></div>
+      </div>`;
+
+  } else if (_friendsTab === 'requests') {
+    if (requests.length === 0) {
+      bodyHTML = `<div class="friends-empty"><i class="ti ti-mail"></i><br>申請はありません</div>`;
+    } else {
+      bodyHTML = requests.map(r => `
+        <div class="friends-card">
+          <div class="friends-avatar">${esc(r.fromNickname.charAt(0).toUpperCase())}</div>
+          <div class="friends-info">
+            <div class="friends-name">${esc(r.fromNickname)}</div>
+            <div class="friends-meta"><span>フレンド申請が届いています</span></div>
+          </div>
+          <div class="friends-req-btns">
+            <button class="friends-accept-btn" onclick="acceptFriendAndRefresh('${esc(r.id)}')">承認</button>
+            <button class="friends-remove-btn" onclick="rejectFriendAndRefresh('${esc(r.fromUid)}')">拒否</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  el.innerHTML = `
+    <button class="back-btn" onclick="showHome()"><i class="ti ti-arrow-left"></i> ホームに戻る</button>
+    <div class="friends-wrap">
+      <div class="friends-header">
+        <div class="friends-title"><i class="ti ti-users"></i> フレンド</div>
+      </div>
+      <div class="friends-tab-row">${tabHTML}</div>
+      <div class="friends-body">${bodyHTML}</div>
+    </div>`;
+}
+
+function switchFriendsTab(tab) {
+  _friendsTab = tab;
+  renderFriendsScreen();
+}
+
+async function doFriendSearch() {
+  const input = document.getElementById('friendSearchInput');
+  const result = document.getElementById('friendSearchResult');
+  if (!input || !result) return;
+  const q = input.value.trim();
+  if (!q) return;
+
+  result.innerHTML = `<div class="friends-search-loading">検索中...</div>`;
+
+  try {
+    const users = await window.FB2.searchUserByNickname(q);
+    const myUid = window.FB2.getMyUid();
+    const filtered = users.filter(u => u.uid !== myUid);
+
+    if (filtered.length === 0) {
+      result.innerHTML = `<div class="friends-empty" style="padding:20px 0">見つかりませんでした</div>`;
+      return;
+    }
+
+    result.innerHTML = filtered.map(u => `
+      <div class="friends-card" style="margin-top:10px">
+        <div class="friends-avatar">${esc(u.nickname.charAt(0).toUpperCase())}</div>
+        <div class="friends-info">
+          <div class="friends-name">${esc(u.nickname)}</div>
+          <div class="friends-meta"><span><i class="ti ti-chart-bar"></i> ${(u.totalXp||0).toLocaleString()} XP</span></div>
+        </div>
+        <button class="friends-add-btn" id="add-btn-${esc(u.uid)}" onclick="sendFriendReqAndUpdate('${esc(u.uid)}','${esc(u.nickname)}')">
+          <i class="ti ti-user-plus"></i> 申請
+        </button>
+      </div>`).join('');
+  } catch(e) {
+    result.innerHTML = `<div class="friends-empty" style="padding:20px 0">エラーが発生しました</div>`;
+  }
+}
+
+// Enterキーで検索
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('friendSearchInput') === document.activeElement) {
+    doFriendSearch();
+  }
+});
+
+async function sendFriendReqAndUpdate(toUid, toNickname) {
+  const btn = document.getElementById(`add-btn-${toUid}`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '送信中...'; }
+  try {
+    await window.FB2.sendFriendRequest(toUid, toNickname);
+    if (btn) { btn.innerHTML = '<i class="ti ti-check"></i> 申請済み'; }
+    _showMiniToast(`${toNickname} に申請しました`);
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> 申請'; }
+    _showMiniToast(e.message || 'エラーが発生しました');
+  }
+}
+
+async function acceptFriendAndRefresh(docId) {
+  try {
+    await window.FB2.acceptFriendRequest(docId);
+    _showMiniToast('フレンドになりました！');
+    _friendsTab = 'list';
+    await renderFriendsScreen();
+  } catch(e) { _showMiniToast('エラーが発生しました'); }
+}
+
+async function rejectFriendAndRefresh(fromUid) {
+  try {
+    await window.FB2.removeFriend(fromUid);
+    _showMiniToast('申請を拒否しました');
+    await renderFriendsScreen();
+  } catch(e) { _showMiniToast('エラーが発生しました'); }
+}
+
+async function removeFriendAndRefresh(uid) {
+  try {
+    await window.FB2.removeFriend(uid);
+    _showMiniToast('フレンドを削除しました');
+    await renderFriendsScreen();
+  } catch(e) { _showMiniToast('エラーが発生しました'); }
+}
+
+/* 起動時に申請バッジをチェック */
+async function checkFriendBadge() {
+  if (!window.FB2 || !window.FB2.isRegistered()) return;
+  try {
+    const reqs = await window.FB2.getPendingRequests();
+    const badge = document.getElementById('friendBadge');
+    if (badge) {
+      badge.style.display = reqs.length > 0 ? '' : 'none';
+      badge.textContent   = reqs.length;
+    }
+  } catch(e) {}
+}
 
 window.addEventListener('DOMContentLoaded', init);
 

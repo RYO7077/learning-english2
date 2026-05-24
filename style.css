@@ -2398,3 +2398,192 @@ body.dark-mode .fc-btn-got   { background: #34C75930; }
   border-color: var(--warning-text, #FF9500) !important;
   background: var(--warning-bg, #FFF5E6) !important;
 }
+
+/* =============================================
+   フレンド画面
+   ============================================= */
+.friends-wrap {
+  padding: 0 16px 40px;
+}
+.friends-header {
+  padding: 16px 0 8px;
+}
+.friends-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.friends-tab-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.friends-tab {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1.5px solid var(--border-secondary, rgba(0,0,0,0.1));
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+}
+.friends-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.friends-req-badge {
+  display: inline-block;
+  background: #FF3B30;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 10px;
+  padding: 0 5px;
+  margin-left: 3px;
+  vertical-align: middle;
+}
+.friends-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.friends-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.friends-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.friends-info {
+  flex: 1;
+  min-width: 0;
+}
+.friends-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.friends-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+.friends-meta i { font-size: 11px; }
+.friends-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-light, #E8F0FF);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.friends-add-btn:disabled { opacity: 0.5; cursor: default; }
+.friends-remove-btn {
+  font-size: 12px;
+  font-weight: 500;
+  color: #FF3B30;
+  background: rgba(255,59,48,0.1);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.friends-accept-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #34C759;
+  background: rgba(52,199,89,0.12);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.friends-req-btns {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.friends-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 40px 0;
+  line-height: 2;
+}
+.friends-empty i { font-size: 32px; opacity: 0.4; }
+.friends-empty span { font-size: 12px; color: var(--text-tertiary); }
+.friends-search-wrap {
+  width: 100%;
+}
+.friends-search-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.friends-search-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-secondary, rgba(0,0,0,0.1));
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+.friends-search-input:focus {
+  border-color: var(--accent);
+}
+.friends-search-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.friends-search-loading {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 20px 0;
+}
