@@ -182,8 +182,89 @@ const TOEIC_SET_META = [
   { color:'#6010A0', bg:'#DFC8FF', label:'総仕上げ',    icon:'ti-trophy',        desc:'全カテゴリ混合・最終確認' },
 ];
 
+
+/* 単語帳選択シート */
+function showAddToVocabSheet(jp, en, btnId) {
+  _showVocabPickSheet([{ jp, en }], () => {
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.innerHTML = '<i class="ti ti-check"></i> 追加済み'; btn.disabled = true; btn.style.opacity = '0.6'; }
+  });
+}
+
+function _showVocabPickSheet(cards, onDone) {
+  const decks = loadDecks();
+  const old = document.getElementById('vocabPickOverlay');
+  if (old) old.remove();
+  const deckListHTML = decks.length === 0
+    ? `<div class="vocab-pick-empty">まだ単語帳がありません<br><span style="font-size:12px;color:var(--text-tertiary)">単語帳画面から先に作成してください</span></div>`
+    : decks.map(d => `
+        <button class="vocab-pick-deck-btn" onclick="_addCardsToSelectedDeck('${d.id}')">
+          <i class="ti ti-cards" style="color:var(--accent)"></i>
+          <span>${esc(d.name)}</span>
+          <span class="vocab-pick-count">${d.cards.length}語</span>
+        </button>`).join('');
+  const preview = cards.length === 1
+    ? `<div class="vocab-pick-preview"><span class="vocab-pick-jp">${esc(cards[0].jp)}</span><span class="vocab-pick-en">${esc(cards[0].en)}</span></div>`
+    : `<div class="vocab-pick-preview"><span class="vocab-pick-jp">${cards.length}件の間違えた問題</span></div>`;
+  const overlay = document.createElement('div');
+  overlay.id = 'vocabPickOverlay';
+  overlay.className = 'vocab-overlay';
+  overlay.innerHTML = `
+    <div class="vocab-sheet" onclick="event.stopPropagation()">
+      <div class="vocab-sheet-handle"></div>
+      <div class="vocab-sheet-title"><i class="ti ti-cards" style="color:var(--accent)"></i> 追加する単語帳を選択</div>
+      <div class="vocab-pick-adding">${preview}</div>
+      <div class="vocab-pick-list">${deckListHTML}</div>
+      <button class="vocab-cancel-btn" style="width:100%;margin-top:8px" onclick="_closeVocabPickSheet()">キャンセル</button>
+    </div>`;
+  overlay.addEventListener('click', _closeVocabPickSheet);
+  overlay._pendingCards = cards;
+  overlay._onDone       = onDone;
+  document.body.appendChild(overlay);
+}
+
+function _closeVocabPickSheet() {
+  const o = document.getElementById('vocabPickOverlay');
+  if (o) o.remove();
+}
+
+function _addCardsToSelectedDeck(deckId) {
+  const overlay = document.getElementById('vocabPickOverlay');
+  if (!overlay) return;
+  const cards  = overlay._pendingCards || [];
+  const onDone = overlay._onDone;
+  const decks  = loadDecks();
+  const deck   = decks.find(d => d.id === deckId);
+  if (!deck) return;
+  let added = 0;
+  cards.forEach(c => {
+    const already = deck.cards.some(x => x.en === c.en && x.jp === c.jp);
+    if (!already) { deck.cards.push({ en: c.en, jp: c.jp, known: false, addedAt: Date.now() }); added++; }
+  });
+  saveDecks(decks);
+  _closeVocabPickSheet();
+  const msg = added === 0 ? 'すでに追加済みです' : `${added}件を「${deck.name}」に追加しました`;
+  _showMiniToast(msg);
+  if (added > 0 && onDone) onDone();
+}
+
+function _showMiniToast(msg) {
+  const old = document.getElementById('miniToast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'miniToast';
+  el.className = 'mini-toast';
+  el.innerHTML = `<i class="ti ti-check"></i> ${msg}`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('mini-toast-in')));
+  setTimeout(() => { el.classList.add('mini-toast-out'); setTimeout(() => el.remove(), 400); }, 2500);
+}
 function getSetMeta(si, level) {
   if (level && level.isToeic) {
+    if (level.id === 'toeic_700') {
+      return (typeof TOEIC_SET_META_700 !== 'undefined' && TOEIC_SET_META_700[si])
+        || { color:'#007AFF', bg:'#E8F2FF', label:'TOEIC 700', icon:'ti-certificate', desc:'TOEIC 700点頻出単語' };
+    }
     return TOEIC_SET_META[si] || { color:'#FF9500', bg:'#FFF5E6', label:'TOEIC', icon:'ti-certificate', desc:'TOEIC頻出単語' };
   }
   return SET_META[si] || { color:'#8E8E93', bg:'#F2F2F7', label:'', desc:'' };
@@ -280,26 +361,60 @@ function normalizeAns(s) {
 // 間違えリストHTML生成（共通）
 function buildMistakesHTML(mistakes) {
   if (!mistakes || mistakes.length === 0) return '';
-  const items = mistakes.map(m => {
-    const enSafe = m.en.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `
-    <div class="mistake-item">
+  const items = mistakes.map((m, idx) => `
+    <div class="mistake-item" id="mistake-item-${idx}">
       <div class="mistake-jp">${esc(m.jp)}</div>
       ${m.userAnswer ? `<div class="mistake-user">× ${esc(m.userAnswer)}</div>` : ''}
       <div class="mistake-en">
         ○ ${esc(m.en)}
-        <button type="button" class="qst-speak-btn" onclick="speakEnglish('${enSafe}')">
+        <button type="button" class="qst-speak-btn" data-speak="${esc(m.en)}">
           <i class="ti ti-volume"></i>
         </button>
       </div>
-    </div>`;
-  }).join('');
+      <button type="button" class="mistake-add-btn" id="mistake-add-${idx}"
+        data-jp="${esc(m.jp)}" data-en="${esc(m.en)}" data-btnid="mistake-add-${idx}">
+        <i class="ti ti-cards"></i> 単語帳に追加
+      </button>
+    </div>`).join('');
   return `
-    <div class="mistakes-section">
-      <div class="mistakes-title"><i class="ti ti-alert-circle"></i> 間違えた問題（${mistakes.length}）</div>
+    <div class="mistakes-section" id="mistakesSection">
+      <div class="mistakes-title-row">
+        <span><i class="ti ti-alert-circle"></i> 間違えた問題（${mistakes.length}）</span>
+        <button type="button" class="mistake-add-all-btn" id="mistakeAddAllBtn">
+          <i class="ti ti-cards"></i> 全て追加
+        </button>
+      </div>
       <div class="mistakes-list">${items}</div>
     </div>`;
 }
+
+document.addEventListener('click', function(e) {
+  const speakBtn = e.target.closest('[data-speak]');
+  if (speakBtn) { speakEnglish(speakBtn.dataset.speak); return; }
+  const addBtn = e.target.closest('.mistake-add-btn[data-jp]');
+  if (addBtn) {
+    _showVocabPickSheet([{ jp: addBtn.dataset.jp, en: addBtn.dataset.en }], () => {
+      addBtn.innerHTML = '<i class="ti ti-check"></i> 追加済み';
+      addBtn.disabled = true; addBtn.style.opacity = '0.6';
+    });
+    return;
+  }
+  const addAllBtn = e.target.closest('#mistakeAddAllBtn');
+  if (addAllBtn) {
+    const section = document.getElementById('mistakesSection');
+    if (!section) return;
+    const cards = [...section.querySelectorAll('.mistake-add-btn[data-jp]')]
+      .map(b => ({ jp: b.dataset.jp, en: b.dataset.en }));
+    _showVocabPickSheet(cards, () => {
+      section.querySelectorAll('.mistake-add-btn').forEach(b => {
+        b.innerHTML = '<i class="ti ti-check"></i> 追加済み'; b.disabled = true; b.style.opacity = '0.6';
+      });
+      addAllBtn.innerHTML = '<i class="ti ti-check"></i> 追加済み';
+      addAllBtn.disabled = true; addAllBtn.style.opacity = '0.6';
+    });
+    return;
+  }
+});
 
 function setCefrLevel(lv) {
   state.cefrLevel = lv;
@@ -991,8 +1106,9 @@ function renderQuestion() {
     return `<div class="${cls}" id="dot${i}"></div>`;
   }).join('');
 
+  window._currentOpts = q.opts ? shuffle(q.opts) : [];
   let inputHtml = q.type==='word'
-    ? `<div class="options">${shuffle(q.opts).map(o=>`<button class="opt" onclick="checkWord('${esc(o)}','${esc(q.en)}')">${esc(o)}</button>`).join('')}</div>`
+    ? `<div class="options">${window._currentOpts.map((o,i)=>`<button class="opt" data-idx="${i}" onclick="checkWordByIdx(${i})">${esc(o)}</button>`).join('')}</div>`
     : `<div class="fill-wrap"><input class="fill-in" id="fillIn" placeholder="英語を入力..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>
        <button class="check-btn" onclick="checkFill()">確認する</button>`;
 
@@ -1026,17 +1142,22 @@ function renderQuestion() {
 /* =============================================
    回答チェック（学習モード）
    ============================================= */
-function checkWord(chosen, correct) {
+function checkWordByIdx(chosenIdx) {
   if (answered) return;
+  const opts    = window._currentOpts || [];
+  const chosen  = opts[chosenIdx];
+  const correct = pool[qIdx].en;
   answered = true;
-  let ok = chosen===correct;
+  let ok = chosen === correct;
   document.querySelectorAll('.opt').forEach(b => {
     b.disabled = true;
-    if (b.textContent===correct) b.className='opt correct';
-    else if (b.textContent===chosen && !ok) b.className='opt wrong';
+    const bVal = opts[parseInt(b.dataset.idx)];
+    if (bVal === correct) b.className = 'opt correct';
+    else if (bVal === chosen && !ok) b.className = 'opt wrong';
   });
   doStudyFeedback(ok, correct);
 }
+function checkWord(chosen, correct) { checkWordByIdx((window._currentOpts||[]).indexOf(chosen)); }
 
 function checkFill() {
   if (answered) return;
@@ -1710,7 +1831,7 @@ function renderTestQuestion() {
         placeholder="英語を入力..."
         autocomplete="off" autocapitalize="off" spellcheck="false">
       <button class="tm-speak-btn" id="tmSpeakHint" style="display:none"
-        onclick="speakEnglish('${esc(card.en)}')">
+        data-speak="${esc(card.en)}" onclick="speakEnglish(this.dataset.speak)">
         <i class="ti ti-volume"></i>
       </button>
     </div>
@@ -1935,7 +2056,7 @@ function renderVocabFC() {
   const frontIsEn = dir === 'en2jp'; // 表面が英語かどうか
 
   // 🔊ボタン：英語側に表示
-  const speakBtn = `<button class="fc-speak-btn" id="fcSpeakBtn" onclick="speakEnglish('${esc(enText)}');event.stopPropagation()" title="発音を聞く"><i class="ti ti-volume"></i></button>`;
+  const speakBtn = `<button class="fc-speak-btn" id="fcSpeakBtn" data-speak="${esc(enText)}" onclick="speakEnglish(this.dataset.speak);event.stopPropagation()" title="発音を聞く"><i class="ti ti-volume"></i></button>`;
 
   const el = document.getElementById('screenVocab');
   el.innerHTML = `
@@ -2287,16 +2408,17 @@ function renderQuestQ() {
   let questionHTML = '';
 
   if (q.qtype === 'qz1') {
-    const opts = shuffle([...q.opts]).slice(0, 4); // 4択
+    const opts = shuffle([...q.opts]).slice(0, 4);
     if (!opts.includes(q.en)) { opts[0] = q.en; }
-    questionHTML = `<div class="qst-opts qst-opts-4">${shuffle(opts).map(o =>
-      `<button class="qst-opt" onclick="checkQuestAnswer(this,'${esc(o)}','${esc(q.en)}','${q.qtype}')">${esc(o)}</button>`
+    window._questOpts = shuffle(opts);
+    questionHTML = `<div class="qst-opts qst-opts-4">${window._questOpts.map((o,i) =>
+      `<button class="qst-opt" data-qidx="${i}" onclick="checkQuestAnswerByIdx(this,${i},'${q.qtype}')">${esc(o)}</button>`
     ).join('')}</div>`;
   } else if (q.qtype === 'qz3') {
     let opts3 = shuffle([...q.opts]).filter(o => o !== q.en).slice(0, 2);
-    opts3 = shuffle([q.en, ...opts3]);
-    questionHTML = `<div class="qst-opts qst-opts-3">${opts3.map(o =>
-      `<button class="qst-opt" onclick="checkQuestAnswer(this,'${esc(o)}','${esc(q.en)}','${q.qtype}')">${esc(o)}</button>`
+    window._questOpts = shuffle([q.en, ...opts3]);
+    questionHTML = `<div class="qst-opts qst-opts-3">${window._questOpts.map((o,i) =>
+      `<button class="qst-opt" data-qidx="${i}" onclick="checkQuestAnswerByIdx(this,${i},'${q.qtype}')">${esc(o)}</button>`
     ).join('')}</div>`;
   } else {
     // word_input / phrase_input
@@ -2307,7 +2429,7 @@ function renderQuestQ() {
         <input class="qst-input" id="qstInput" placeholder="英語を入力..."
           autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
-      <button class="qst-submit-btn" onclick="checkQuestInput('${esc(q.en)}','${q.qtype}')">
+      <button class="qst-submit-btn" onclick="checkQuestInput()">
         <i class="ti ti-arrow-right"></i> 確認する
       </button>`;
   }
@@ -2352,7 +2474,7 @@ function renderQuestQ() {
       if (inp) {
         inp.focus();
         inp.addEventListener('keydown', e => {
-          if (e.key === 'Enter' && !qst_answered) checkQuestInput(q.en, q.qtype);
+          if (e.key === 'Enter' && !qst_answered) checkQuestInput();
         });
       }
     }, 80);
@@ -2360,38 +2482,42 @@ function renderQuestQ() {
 }
 
 /* ---------- 回答チェック ---------- */
-function checkQuestAnswer(btn, chosen, correct, qtype) {
+function checkQuestAnswerByIdx(btn, chosenIdx, qtype) {
   if (qst_answered) return;
   qst_answered = true;
-  const ok  = chosen === correct;
-  const pts = QUEST_POINTS[qtype];
-
+  const opts    = window._questOpts || [];
+  const chosen  = opts[chosenIdx];
+  const correct = qst_pool[qst_idx].en;
+  const ok      = chosen === correct;
+  const pts     = QUEST_POINTS[qtype];
   document.querySelectorAll('.qst-opt').forEach(b => {
     b.disabled = true;
-    if (b.textContent.trim() === correct) b.classList.add('qst-opt-correct');
-    else if (b === btn && !ok)            b.classList.add('qst-opt-wrong');
+    const bVal = opts[parseInt(b.dataset.qidx)];
+    if (bVal === correct) b.classList.add('qst-opt-correct');
+    else if (b === btn && !ok) b.classList.add('qst-opt-wrong');
   });
-
   applyQuestResult(ok, pts, correct, ok ? '' : chosen);
 }
+function checkQuestAnswer(btn, chosen, correct, qtype) {
+  const idx = (window._questOpts||[]).indexOf(chosen);
+  checkQuestAnswerByIdx(btn, idx >= 0 ? idx : 0, qtype);
+}
 
-function checkQuestInput(correct, qtype) {
+function checkQuestInput() {
   if (qst_answered) return;
+  const q      = qst_pool[qst_idx];
+  const correct = q.en;
+  const qtype  = q.qtype;
   const rawVal = (document.getElementById('qstInput')?.value || '').trim();
-  const val = rawVal.toLowerCase();
-
-  // " or " で区切られた複数正解に対応
+  const val    = rawVal.toLowerCase();
   const correctOptions = correct.split(/\s+or\s+/i).map(s => s.trim());
   const ok = correctOptions.some(c =>
     val === c.toLowerCase() || normalizeAns(val) === normalizeAns(c)
   );
-
   qst_answered = true;
   const inp = document.getElementById('qstInput');
   if (inp) inp.disabled = true;
   document.querySelector('.qst-submit-btn')?.setAttribute('disabled','');
-
-  // 正解だが記号・プレースホルダーが抜けていた場合のヒント
   let punctHint = '';
   if (ok) {
     const matchedCorrect = correctOptions.find(c =>
@@ -2401,7 +2527,6 @@ function checkQuestInput(correct, qtype) {
       punctHint = `<span class="qst-punct-hint">（正確には「${esc(matchedCorrect)}」）</span>`;
     }
   }
-
   const pts = QUEST_POINTS[qtype];
   applyQuestResult(ok, pts, correct, ok ? '' : rawVal, punctHint);
 }
@@ -2435,7 +2560,7 @@ function applyQuestResult(ok, pts, correct, userAnswer, punctHint = '') {
     fb.innerHTML = ok
       ? `<i class="ti ti-circle-check"></i> 正解！ ${punctHint}<span class="qst-delta">+${pts.ok}</span>`
       : `<i class="ti ti-circle-x"></i> 不正解。<span class="qst-answer">${esc(correct)}</span>
-         <button type="button" class="qst-speak-btn" onclick="questSpeak('${esc(correct)}',this)" title="発音を聞く">
+         <button type="button" class="qst-speak-btn" data-speak="${esc(correct)}" onclick="questSpeak(this.dataset.speak,this)" title="発音を聞く">
            <i class="ti ti-volume"></i></button>
          <span class="qst-delta qst-delta-ng">${pts.ng}</span>`;
     fb.style.display = 'flex';
@@ -2467,7 +2592,7 @@ function buildQuestMistakesListHTML() {
       ${userLine}
       <div class="quest-mistake-answer">
         <span class="quest-mistake-correct">○ ${esc(m.en)}</span>
-        <button type="button" class="qst-speak-btn" onclick="questSpeak('${esc(m.en)}',this)" title="発音を聞く">
+        <button type="button" class="qst-speak-btn" data-speak="${esc(m.en)}" onclick="questSpeak(this.dataset.speak,this)" title="発音を聞く">
           <i class="ti ti-volume"></i>
         </button>
       </div>
@@ -2589,7 +2714,7 @@ function renderQuestReview() {
         <div class="quest-review-answer-row">
           <div class="quest-review-label">正解</div>
           <div class="quest-review-en">${esc(m.en)}</div>
-          <button type="button" class="qst-speak-btn qst-speak-btn-lg" onclick="questSpeak('${esc(m.en)}',this)" title="発音を聞く">
+          <button type="button" class="qst-speak-btn qst-speak-btn-lg" data-speak="${esc(m.en)}" onclick="questSpeak(this.dataset.speak,this)" title="発音を聞く">
             <i class="ti ti-volume"></i> 発音
           </button>
         </div>
@@ -2803,9 +2928,24 @@ function init() {
     const icon = document.getElementById('darkIcon');
     if (icon) { icon.classList.remove('ti-moon'); icon.classList.add('ti-sun'); }
   }
-  // 初回ニックネーム設定
+  // 初回ニックネーム設定（Firebase確認後に表示）
   if (!localStorage.getItem('le2_nickname')) {
-    document.getElementById('nicknameModal').style.display = 'flex';
+    const checkNickname = async () => {
+      if (window.FB2) {
+        try {
+          const uid  = window.FB2.getMyUid();
+          const data = await window.FB2.getFriendData(uid);
+          if (data && data.nickname) {
+            localStorage.setItem('le2_nickname', data.nickname);
+            return;
+          }
+        } catch(e) {}
+        document.getElementById('nicknameModal').style.display = 'flex';
+      } else {
+        setTimeout(checkNickname, 300);
+      }
+    };
+    setTimeout(checkNickname, 500);
   }
   // 週間1位メダルチェック（週が変わった時のみ）
   if (state._checkWeekRank) {
@@ -2814,7 +2954,7 @@ function init() {
   }
   showHome();
   // フレンド申請バッジ更新
-  setTimeout(refreshFriendBadge, 2000);
+  setTimeout(checkFriendBadge, 2000);
 }
 
 function toggleDarkMode() {
@@ -2832,10 +2972,10 @@ async function saveNickname() {
   const val = (document.getElementById('nicknameInput').value || '').trim();
   if (!val) { document.getElementById('nicknameInput').focus(); return; }
   document.getElementById('nicknameModal').style.display = 'none';
-  if (window.FB2) {
-    await window.FB2.registerUser(val);
-  } else {
-    localStorage.setItem('le2_nickname', val);
+  localStorage.setItem('le2_nickname', val);
+  for (let i = 0; i < 15; i++) {
+    if (window.FB2) { await window.FB2.registerUser(val); break; }
+    await new Promise(r => setTimeout(r, 200));
   }
 }
 
@@ -2909,68 +3049,59 @@ async function showGlobalRanking() {
 
 async function renderRankingScreen() {
   const el = document.getElementById('screenRanking');
-  const myUid = window.FB2 ? window.FB2.getMyUid() : null;
+  const myUid      = window.FB2 ? window.FB2.getMyUid() : null;
   const myNickname = window.FB2 ? window.FB2.getNickname() : localStorage.getItem('le2_nickname') || 'You';
-
+  const isMaster   = _rankingTab === 'master';
   let users = [];
-  let isMaster = _rankingTab === 'master';
-
   try {
     if (window.FB2) {
       users = isMaster ? await window.FB2.getMasterWeekRanking() : await window.FB2.getAllRanking();
     }
-  } catch(e) {
-    users = [];
-  }
-
-  const totalUsers = users.length;
-  const myIdx = users.findIndex(u => u.uid === myUid);
-  const myRank = myIdx >= 0 ? myIdx + 1 : null;
-  const myData = myIdx >= 0 ? users[myIdx] : null;
-  const myScore = myData ? (isMaster ? myData.masterWeekScore : myData.totalXp) : state.totalXp;
-
-  const top5 = users.slice(0, 5);
-  const medals = ['🥇', '🥈', '🥉', '4', '5'];
-  const posClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-
-  const top5HTML = top5.length === 0
-    ? `<div class="ranking-empty">データがありません</div>`
-    : top5.map((u, i) => `
-    <div class="ranking-card${u.uid === myUid ? ' me' : ''}">
-      <div class="ranking-pos ${posClass(i)}">${medals[i]}</div>
-      <div class="ranking-name">${esc(u.nickname || '名無し')}</div>
-      <div class="ranking-score">${isMaster ? (u.masterWeekScore||0).toLocaleString() : (u.totalXp||0).toLocaleString()} XP</div>
-    </div>`).join('');
-
-  const myCardHTML = myRank
-    ? `<div class="ranking-my-card">
-        <div class="ranking-my-rank">#${myRank}</div>
-        <div class="ranking-my-info">
-          <div class="ranking-my-name">${esc(myNickname)}</div>
-          <div class="ranking-my-score">${myScore.toLocaleString()} XP · ${totalUsers}人中</div>
-        </div>
-      </div>`
-    : `<div class="ranking-my-card">
-        <div class="ranking-my-rank">-</div>
-        <div class="ranking-my-info">
-          <div class="ranking-my-name">${esc(myNickname)}</div>
-          <div class="ranking-my-score">ランキング未参加</div>
-        </div>
-      </div>`;
-
+  } catch(e) { users = []; }
+  const totalPlayers = users.length;
+  const myIdx   = users.findIndex(u => u.uid === myUid);
+  const myRank  = myIdx >= 0 ? myIdx + 1 : null;
+  const myData  = myIdx >= 0 ? users[myIdx] : null;
+  const myScore = myData
+    ? (isMaster ? (myData.masterWeekScore||0) : (myData.totalXp||0))
+    : (isMaster ? 0 : (state.totalXp||0));
+  const top3    = users.slice(0, 3);
+  const medals  = ['🥇','🥈','🥉'];
+  const posClass = i => i===0?'gold':i===1?'silver':'bronze';
+  const top5HTML = top3.length === 0
+    ? `<div class="ranking-empty">まだデータがありません</div>`
+    : top3.map((u,i) => `
+      <div class="ranking-card${u.uid===myUid?' me':''}">
+        <div class="ranking-pos ${posClass(i)}">${medals[i]}</div>
+        <div class="ranking-name">${esc(u.nickname||'名無し')}</div>
+        <div class="ranking-score">${(isMaster?(u.masterWeekScore||0):(u.totalXp||0)).toLocaleString()} XP</div>
+      </div>`).join('');
+  const myScoreLabel = myScore > 0 ? `${myScore.toLocaleString()} XP` : '0 XP';
+  const myRankLabel  = myRank ? `#${myRank}` : '-';
+  const mySubLabel   = myRank ? `${myScoreLabel} · ${totalPlayers}人中` : `未参加 · 参加者${totalPlayers}人`;
+  const myCardHTML = `
+    <div class="ranking-my-card${myRank&&myRank<=3?' ranking-my-top':''}">
+      <div class="ranking-my-rank">${myRankLabel}</div>
+      <div class="ranking-my-info">
+        <div class="ranking-my-name">${esc(myNickname)}</div>
+        <div class="ranking-my-score">${mySubLabel}</div>
+      </div>
+    </div>`;
+  const tabDesc = isMaster ? '<div class="ranking-tab-desc">Questのマスターモードの今週のスコア（月曜リセット）</div>' : '';
   el.innerHTML = `
     <button class="back-btn" onclick="showHome()"><i class="ti ti-arrow-left"></i> ホームに戻る</button>
     <div class="ranking-wrap">
       <div class="ranking-header">
         <div class="ranking-title">🏆 ランキング</div>
-        <div class="ranking-sub">総ユーザー数: ${totalUsers}人</div>
+        <div class="ranking-sub">参加プレイヤー ${totalPlayers}人</div>
       </div>
       <div class="ranking-tab-row">
         <button class="ranking-tab${_rankingTab==='total'?' active':''}" onclick="switchRankingTab('total')">累計XP</button>
         <button class="ranking-tab${_rankingTab==='master'?' active':''}" onclick="switchRankingTab('master')">Master週間スコア</button>
       </div>
+      ${tabDesc}
       ${myCardHTML}
-      <div class="ranking-top5-title">TOP 5</div>
+      <div class="ranking-top5-title">TOP 3</div>
       ${top5HTML}
     </div>`;
 }
@@ -2982,6 +3113,175 @@ function switchRankingTab(tab) {
   renderRankingScreen();
 }
 
+
+
+/* =============================================
+   フレンド機能
+   ============================================= */
+async function showFriendsScreen() {
+  showScreen('screenFriends');
+  const el = document.getElementById('screenFriends');
+  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-tertiary)">読み込み中...</div>`;
+  await renderFriendsScreen();
+}
+
+let _friendsTab = 'list';
+
+async function renderFriendsScreen() {
+  const el = document.getElementById('screenFriends');
+  if (!localStorage.getItem('le2_nickname')) {
+    el.innerHTML = `
+      <button class="back-btn" onclick="showHome()"><i class="ti ti-arrow-left"></i> ホームに戻る</button>
+      <div style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
+        <div style="font-size:40px;margin-bottom:12px">👋</div>
+        <div style="font-weight:600;margin-bottom:8px">ニックネームを設定してください</div>
+        <div style="font-size:13px">ランキング登録後にフレンド機能が使えます</div>
+      </div>`;
+    return;
+  }
+  const myUid = window.FB2 ? window.FB2.getMyUid() : null;
+  const [friends, requests] = await Promise.all([
+    window.FB2 ? window.FB2.getFriends().catch(()=>[]) : Promise.resolve([]),
+    window.FB2 ? window.FB2.getPendingRequests().catch(()=>[]) : Promise.resolve([]),
+  ]);
+  const friendDataList = await Promise.all(
+    friends.map(f => window.FB2 ? window.FB2.getFriendData(f.uid).catch(()=>null) : Promise.resolve(null))
+  );
+  const reqCount = requests.length;
+  const badge = document.getElementById('friendBadge');
+  if (badge) { badge.style.display = reqCount>0?'':'none'; badge.textContent = reqCount; }
+  const tabs = [
+    { id:'list',     label:`フレンド（${friends.length}）` },
+    { id:'search',   label:'検索' },
+    { id:'requests', label:`申請（${reqCount}）` },
+  ];
+  const tabHTML = tabs.map(t => `
+    <button class="friends-tab${_friendsTab===t.id?' active':''}" onclick="switchFriendsTab('${t.id}')">
+      ${t.label}${t.id==='requests'&&reqCount>0?` <span class="friends-req-badge">${reqCount}</span>`:''}
+    </button>`).join('');
+  let bodyHTML = '';
+  if (_friendsTab === 'list') {
+    bodyHTML = friends.length === 0
+      ? `<div class="friends-empty"><i class="ti ti-users"></i><br>フレンドがいません<br><span>「検索」タブから追加しよう</span></div>`
+      : friendDataList.map((data,i) => {
+          const f = friends[i];
+          const xp = data?(data.totalXp||0):0;
+          const streak = data?(data.streak||0):0;
+          return `
+          <div class="friends-card">
+            <div class="friends-avatar">${esc(f.nickname.charAt(0).toUpperCase())}</div>
+            <div class="friends-info">
+              <div class="friends-name">${esc(f.nickname)}</div>
+              <div class="friends-meta">
+                <span><i class="ti ti-chart-bar"></i> ${xp.toLocaleString()} XP</span>
+                ${streak>0?`<span><i class="ti ti-flame"></i> ${streak}日連続</span>`:''}
+              </div>
+            </div>
+            <button class="friends-remove-btn" onclick="removeFriendAndRefresh('${esc(f.uid)}')">削除</button>
+          </div>`;
+        }).join('');
+  } else if (_friendsTab === 'search') {
+    bodyHTML = `
+      <div class="friends-search-wrap">
+        <div class="friends-search-row">
+          <input class="friends-search-input" id="friendSearchInput" placeholder="ニックネームで検索..." maxlength="12" autocomplete="off">
+          <button class="friends-search-btn" onclick="doFriendSearch()"><i class="ti ti-search"></i></button>
+        </div>
+        <div id="friendSearchResult"></div>
+      </div>`;
+  } else if (_friendsTab === 'requests') {
+    bodyHTML = requests.length === 0
+      ? `<div class="friends-empty"><i class="ti ti-mail"></i><br>申請はありません</div>`
+      : requests.map(r => `
+        <div class="friends-card">
+          <div class="friends-avatar">${esc(r.fromNickname.charAt(0).toUpperCase())}</div>
+          <div class="friends-info">
+            <div class="friends-name">${esc(r.fromNickname)}</div>
+            <div class="friends-meta"><span>フレンド申請が届いています</span></div>
+          </div>
+          <div class="friends-req-btns">
+            <button class="friends-accept-btn" onclick="acceptFriendAndRefresh('${esc(r.id)}')">承認</button>
+            <button class="friends-remove-btn" onclick="rejectFriendAndRefresh('${esc(r.fromUid)}')">拒否</button>
+          </div>
+        </div>`).join('');
+  }
+  el.innerHTML = `
+    <button class="back-btn" onclick="showHome()"><i class="ti ti-arrow-left"></i> ホームに戻る</button>
+    <div class="friends-wrap">
+      <div class="friends-header"><div class="friends-title"><i class="ti ti-users"></i> フレンド</div></div>
+      <div class="friends-tab-row">${tabHTML}</div>
+      <div class="friends-body">${bodyHTML}</div>
+    </div>`;
+}
+
+function switchFriendsTab(tab) { _friendsTab = tab; renderFriendsScreen(); }
+
+async function doFriendSearch() {
+  const input = document.getElementById('friendSearchInput');
+  const result = document.getElementById('friendSearchResult');
+  if (!input||!result) return;
+  const q = input.value.trim();
+  if (!q) return;
+  result.innerHTML = `<div class="friends-search-loading">検索中...</div>`;
+  try {
+    const users = await window.FB2.searchUserByNickname(q);
+    const myUid = window.FB2.getMyUid();
+    const filtered = users.filter(u => u.uid !== myUid);
+    if (filtered.length === 0) { result.innerHTML = `<div class="friends-empty" style="padding:20px 0">見つかりませんでした</div>`; return; }
+    result.innerHTML = filtered.map(u => `
+      <div class="friends-card" style="margin-top:10px">
+        <div class="friends-avatar">${esc(u.nickname.charAt(0).toUpperCase())}</div>
+        <div class="friends-info">
+          <div class="friends-name">${esc(u.nickname)}</div>
+          <div class="friends-meta"><span><i class="ti ti-chart-bar"></i> ${(u.totalXp||0).toLocaleString()} XP</span></div>
+        </div>
+        <button class="friends-add-btn" id="add-btn-${esc(u.uid)}" onclick="sendFriendReqAndUpdate('${esc(u.uid)}','${esc(u.nickname)}')">
+          <i class="ti ti-user-plus"></i> 申請
+        </button>
+      </div>`).join('');
+  } catch(e) { result.innerHTML = `<div class="friends-empty" style="padding:20px 0">エラーが発生しました</div>`; }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('friendSearchInput')===document.activeElement) doFriendSearch();
+});
+
+async function sendFriendReqAndUpdate(toUid, toNickname) {
+  const btn = document.getElementById(`add-btn-${toUid}`);
+  if (btn) { btn.disabled=true; btn.innerHTML='送信中...'; }
+  try {
+    await window.FB2.sendFriendRequest(toUid, toNickname);
+    if (btn) { btn.innerHTML='<i class="ti ti-check"></i> 申請済み'; }
+    _showMiniToast(`${toNickname} に申請しました`);
+  } catch(e) {
+    if (btn) { btn.disabled=false; btn.innerHTML='<i class="ti ti-user-plus"></i> 申請'; }
+    _showMiniToast(e.message||'エラーが発生しました');
+  }
+}
+
+async function acceptFriendAndRefresh(docId) {
+  try { await window.FB2.acceptFriendRequest(docId); _showMiniToast('フレンドになりました！'); _friendsTab='list'; await renderFriendsScreen(); }
+  catch(e) { _showMiniToast('エラーが発生しました'); }
+}
+
+async function rejectFriendAndRefresh(fromUid) {
+  try { await window.FB2.removeFriend(fromUid); _showMiniToast('申請を拒否しました'); await renderFriendsScreen(); }
+  catch(e) { _showMiniToast('エラーが発生しました'); }
+}
+
+async function removeFriendAndRefresh(uid) {
+  try { await window.FB2.removeFriend(uid); _showMiniToast('フレンドを削除しました'); await renderFriendsScreen(); }
+  catch(e) { _showMiniToast('エラーが発生しました'); }
+}
+
+async function checkFriendBadge() {
+  if (!window.FB2||!localStorage.getItem('le2_nickname')) return;
+  try {
+    const reqs = await window.FB2.getPendingRequests();
+    const badge = document.getElementById('friendBadge');
+    if (badge) { badge.style.display=reqs.length>0?'':'none'; badge.textContent=reqs.length; }
+  } catch(e) {}
+}
 
 window.addEventListener('DOMContentLoaded', init);
 
