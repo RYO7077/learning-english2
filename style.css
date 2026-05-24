@@ -2271,3 +2271,130 @@ body.dark-mode .fc-btn-got   { background: #34C75930; }
   flex-shrink: 0;
   font-size: 16px;
 }
+
+/* =============================================
+   間違えた問題 → 単語帳追加ボタン
+   ============================================= */
+.mistakes-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.mistake-add-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light, #E8F0FF);
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.mistake-add-all-btn:disabled { opacity: 0.6; cursor: default; }
+.mistake-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light, #E8F0FF);
+  border: none;
+  border-radius: 7px;
+  padding: 4px 10px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+.mistake-add-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* 単語帳選択シート内 */
+.vocab-pick-adding {
+  margin-bottom: 10px;
+}
+.vocab-pick-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.vocab-pick-jp { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+.vocab-pick-en { font-size: 13px; color: var(--text-secondary); }
+.vocab-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.vocab-pick-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 20px 0;
+  line-height: 1.7;
+}
+.vocab-pick-deck-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-secondary, rgba(0,0,0,0.1));
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: left;
+}
+.vocab-pick-deck-btn:active { opacity: 0.7; }
+.vocab-pick-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ミニトースト */
+.mini-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1C1C1E;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 9999;
+  white-space: nowrap;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mini-toast-in  { opacity: 1; transform: translateX(-50%) translateY(0); }
+.mini-toast-out { opacity: 0; transform: translateX(-50%) translateY(10px); }
+
+/* ランキング追加スタイル */
+.ranking-tab-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin: -4px 0 10px;
+}
+.ranking-my-top {
+  border-color: var(--warning-text, #FF9500) !important;
+  background: var(--warning-bg, #FFF5E6) !important;
+}

@@ -1163,11 +1163,194 @@ const TOEIC_600 = {
     ]
 };
 
-/* TOEIC 700点目標（準備中） */
+/* TOEIC 700点目標 */
+const TOEIC_SET_META_700 = [
+  { color:'#FF6B00', bg:'#FFF3E8', label:'ビジネス基本①', icon:'ti-briefcase', desc:'非公式・職業・提出・通知・資格' },
+  { color:'#FF6B00', bg:'#FFF3E8', label:'ビジネス基本②', icon:'ti-tag', desc:'無料・修正・追跡・在庫・小売り' },
+  { color:'#E67E00', bg:'#FFF0DC', label:'動詞・形容詞①', icon:'ti-bolt', desc:'割り当て・宴会・改装・証明書・議題' },
+  { color:'#E67E00', bg:'#FFF0DC', label:'動詞・形容詞②', icon:'ti-bolt', desc:'組み立て・飲み物・合併・事前・有名' },
+  { color:'#CC6B00', bg:'#FFEBD6', label:'施設・契約', icon:'ti-building', desc:'宿屋・要約・建築家・食料品・彫刻' },
+  { color:'#007AFF', bg:'#E8F2FF', label:'旅行・業者', icon:'ti-plane', desc:'旅程・同僚・移転・観光・消費者' },
+  { color:'#007AFF', bg:'#E8F2FF', label:'ビジネス動詞③', icon:'ti-bolt', desc:'点検・給与・競争・アンケート・貢献' },
+  { color:'#0062CC', bg:'#E0EEFF', label:'形容詞・副詞', icon:'ti-adjustments', desc:'生産性・戦略・卓越・会場・超える' },
+  { color:'#0062CC', bg:'#E0EEFF', label:'生活・職場', icon:'ti-home', desc:'評価・交渉・完成・職場・徹底的' },
+  { color:'#34C759', bg:'#E8FAF0', label:'上級語彙①', icon:'ti-sparkles', desc:'宿泊・柔軟・補償・軽食・信頼' },
+  { color:'#34C759', bg:'#E8FAF0', label:'上級語彙②', icon:'ti-sparkles', desc:'収益・資金調達・冷蔵庫・エアコン' },
+  { color:'#28A84A', bg:'#DDF5E8', label:'生活用品①', icon:'ti-tools', desc:'掃除機・電球・洗剤・封筒・はかり' },
+  { color:'#28A84A', bg:'#DDF5E8', label:'生活用品②', icon:'ti-tools', desc:'はさみ・文房具・カーテン・ノートPC' },
+  { color:'#1E9240', bg:'#D4F0DF', label:'テクノロジー', icon:'ti-device-laptop', desc:'携帯・コピー機・回転ドア・ランニング機' },
+];
+
 const TOEIC_700 = {
-  id:'toeic_700', name:'TOEIC 700点', desc:'準備中 — Coming Soon', unlockNeeds:null,
-  isToeic: true, toeicScore: 700, comingSoon: true,
-  sets:[]
+  id:'toeic_700', name:'TOEIC 700点', desc:'700点突破を目指す語彙強化', unlockNeeds:null,
+  isToeic: true, toeicScore: 700,
+  sets:[
+  [
+    {type:'word',jp:'非公式な、カジュアルな',en:'informal',opts:['promotional','sculpture','informal','scarf']},
+    {type:'word',jp:'最近',en:'lately',opts:['lately','reliable','paperwork','remodel']},
+    {type:'word',jp:'職業',en:'profession',opts:['numerous','acquire','thorough','profession']},
+    {type:'word',jp:'監督者、上司',en:'supervisor',opts:['workplace','supervisor','informal','wildlife']},
+    {type:'word',jp:'確実にする',en:'ensure',opts:['equip','ensure','circulation','briefcase']},
+    {type:'word',jp:'提出',en:'submission',opts:['submission','plastic bag','revenue','heater']},
+    {type:'word',jp:'通知する',en:'notify',opts:['scale','cardboard box','payroll','notify']},
+    {type:'word',jp:'間違いなく',en:'definitely',opts:['prior','banquet','definitely','scale']},
+    {type:'word',jp:'資格がある',en:'eligible',opts:['eligible','fund-raising','notify','strategy']},
+    {type:'word',jp:'書類作業',en:'paperwork',opts:['revise','paperwork','valid','merger']}
+  ],
+  [
+    {type:'word',jp:'無料の、お世辞の',en:'complimentary',opts:['complimentary','household','reliable','storage']},
+    {type:'word',jp:'修正する、改訂する',en:'revise',opts:['cupboard','drape','revise','assembly']},
+    {type:'word',jp:'追跡する',en:'track',opts:['orientation','refrigerator','track','generate']},
+    {type:'word',jp:'管理の、事務の',en:'administrative',opts:['retail','beverage','thorough','administrative']},
+    {type:'word',jp:'小売り',en:'retail',opts:['affordable','renovate','retail','stove']},
+    {type:'word',jp:'在庫',en:'inventory',opts:['inventory','inspect','wildlife','promotional']},
+    {type:'word',jp:'広範囲の',en:'extensive',opts:['extensive','predict','renovate','informal']},
+    {type:'word',jp:'宣伝用の',en:'promotional',opts:['equip','complimentary','promotional','briefcase']},
+    {type:'word',jp:'ケータリング、配膳業',en:'catering',opts:['catering','ensure','remodel','household']},
+    {type:'word',jp:'野生生物',en:'wildlife',opts:['equip','specialize','cardboard box','wildlife']}
+  ],
+  [
+    {type:'word',jp:'割り当てる',en:'assign',opts:['completion','assign','accessible','approximately']},
+    {type:'word',jp:'暗示する',en:'imply',opts:['submission','imply','questionnaire','agenda']},
+    {type:'word',jp:'宴会',en:'banquet',opts:['negotiate','banquet','generate','informal']},
+    {type:'word',jp:'有効な',en:'valid',opts:['wildlife','valid','renowned','consumer']},
+    {type:'word',jp:'手頃な',en:'affordable',opts:['relocate','generate','affordable','completion']},
+    {type:'word',jp:'改装する',en:'renovate',opts:['inn','defective','inspect','renovate']},
+    {type:'word',jp:'ガイドライン、指針',en:'guidelines',opts:['guidelines','appliance','reliable','venue']},
+    {type:'word',jp:'証明書',en:'certificate',opts:['certificate','light bulb','contribute','envelope']},
+    {type:'word',jp:'革新的な',en:'innovative',opts:['light fixture','track','innovative','approximately']},
+    {type:'word',jp:'議題、予定表',en:'agenda',opts:['quarterly','agenda','directory','defective']}
+  ],
+  [
+    {type:'word',jp:'組み立て、会議',en:'assembly',opts:['imply','assembly','cupboard','complimentary']},
+    {type:'word',jp:'設置する',en:'install',opts:['defective','affordable','install','sunscreen']},
+    {type:'word',jp:'オリエンテーション、説明会',en:'orientation',opts:['ingredient','innovative','orientation','mobile phone']},
+    {type:'word',jp:'有名な',en:'renowned',opts:['exceed','renowned','envelope','ensure']},
+    {type:'word',jp:'適切な',en:'appropriate',opts:['qualified','dedicated','appropriate','mobile phone']},
+    {type:'word',jp:'材料、成分',en:'ingredient',opts:['ingredient','photocopier','valid','briefcase']},
+    {type:'word',jp:'保管、収納',en:'storage',opts:['orientation','preference','inn','storage']},
+    {type:'word',jp:'飲み物',en:'beverage',opts:['scissors','beverage','stapler','freight elevator']},
+    {type:'word',jp:'前の、事前の',en:'prior',opts:['flexible','briefcase','consumer','prior']},
+    {type:'word',jp:'合併',en:'merger',opts:['vacuum cleaner','inventory','merger','accommodations']}
+  ],
+  [
+    {type:'word',jp:'宿屋、旅館',en:'inn',opts:['inn','briefcase','approximately','affordable']},
+    {type:'word',jp:'装備する',en:'equip',opts:['merger','accomplished','equip','promptly']},
+    {type:'word',jp:'要約',en:'summary',opts:['summary','drape','evaluate','sunscreen']},
+    {type:'word',jp:'賃貸契約、貸す',en:'lease',opts:['lease','ensure','directory','merger']},
+    {type:'word',jp:'欠陥のある',en:'defective',opts:['defective','itinerary','informal','plastic bag']},
+    {type:'word',jp:'四半期ごとの',en:'quarterly',opts:['consumer','equip','quarterly','briefcase']},
+    {type:'word',jp:'延長された',en:'extended',opts:['specialize','extended','ensure','profession']},
+    {type:'word',jp:'建築家',en:'architect',opts:['stapler','architect','flexible','washing machine']},
+    {type:'word',jp:'食料品',en:'grocery',opts:['grocery','accessible','vendor','accordingly']},
+    {type:'word',jp:'彫刻',en:'sculpture',opts:['definitely','renovate','sculpture','scarf']}
+  ],
+  [
+    {type:'word',jp:'旅程表',en:'itinerary',opts:['microwave oven','laptop','exceptional','itinerary']},
+    {type:'word',jp:'名簿、一覧',en:'directory',opts:['appropriate','sunscreen','accessible','directory']},
+    {type:'word',jp:'期限が切れる',en:'expire',opts:['expire','ingredient','patron','photocopier']},
+    {type:'word',jp:'販売業者',en:'vendor',opts:['vendor','refrigerator','reliable','accordingly']},
+    {type:'word',jp:'同僚',en:'colleague',opts:['colleague','summary','venue','approximately']},
+    {type:'word',jp:'常連客、支援者',en:'patron',opts:['productivity','appropriate','patron','accessible']},
+    {type:'word',jp:'移転する',en:'relocate',opts:['payroll','relocate','consumer','predict']},
+    {type:'word',jp:'観光',en:'tourism',opts:['promptly','tourism','approximately','promotional']},
+    {type:'word',jp:'改装する',en:'remodel',opts:['grocery','guidelines','remodel','lately']},
+    {type:'word',jp:'消費者',en:'consumer',opts:['wildlife','revise','consumer','orientation']}
+  ],
+  [
+    {type:'word',jp:'点検する',en:'inspect',opts:['contribute','remodel','flexible','inspect']},
+    {type:'word',jp:'多数の',en:'numerous',opts:['flexible','drape','numerous','remodel']},
+    {type:'word',jp:'給与支払い名簿',en:'payroll',opts:['inventory','payroll','architect','retail']},
+    {type:'word',jp:'資格のある',en:'qualified',opts:['qualified','specialize','notify','exceptional']},
+    {type:'word',jp:'家電製品',en:'appliance',opts:['appliance','accordingly','renowned','scale']},
+    {type:'word',jp:'競争力のある',en:'competitive',opts:['banquet','certificate','competitive','administrative']},
+    {type:'word',jp:'専門にする',en:'specialize',opts:['accommodations','specialize','cardboard box','preference']},
+    {type:'word',jp:'アンケート',en:'questionnaire',opts:['banquet','affordable','qualified','questionnaire']},
+    {type:'word',jp:'およそ',en:'approximately',opts:['quarterly','numerous','approximately','revolving door']},
+    {type:'word',jp:'貢献する',en:'contribute',opts:['merger','contribute','air conditioner','promotional']}
+  ],
+  [
+    {type:'word',jp:'生産性',en:'productivity',opts:['banquet','prior','productivity','guidelines']},
+    {type:'word',jp:'迅速に',en:'promptly',opts:['promptly','accomplished','microwave oven','refrigerator']},
+    {type:'word',jp:'戦略',en:'strategy',opts:['cupboard','exceed','strategy','consumer']},
+    {type:'word',jp:'専念した',en:'dedicated',opts:['evaluate','assign','wildlife','dedicated']},
+    {type:'word',jp:'卓越した、例外的な',en:'exceptional',opts:['relocate','treadmill','refrigerator','exceptional']},
+    {type:'word',jp:'昼食会',en:'luncheon',opts:['relevant','retail','assembly','luncheon']},
+    {type:'word',jp:'超える',en:'exceed',opts:['exceed','questionnaire','consumer','quarterly']},
+    {type:'word',jp:'複数の',en:'multiple',opts:['washing machine','revolving door','orientation','multiple']},
+    {type:'word',jp:'明記する',en:'specify',opts:['specify','informal','fund-raising','substantial']},
+    {type:'word',jp:'会場',en:'venue',opts:['multiple','venue','competitive','inn']}
+  ],
+  [
+    {type:'word',jp:'家庭、家庭用の',en:'household',opts:['household','preference','lately','tourism']},
+    {type:'word',jp:'評価する',en:'evaluate',opts:['architect','evaluate','revise','substantial']},
+    {type:'word',jp:'交渉する',en:'negotiate',opts:['lease','strategy','negotiate','assign']},
+    {type:'word',jp:'予約',en:'booking',opts:['booking','renowned','imply','storage']},
+    {type:'word',jp:'流通、循環',en:'circulation',opts:['circulation','submission','qualified','productivity']},
+    {type:'word',jp:'完成、完了',en:'completion',opts:['completion','bookcase','expire','photocopier']},
+    {type:'word',jp:'関連のある',en:'relevant',opts:['scarf','guidelines','banquet','relevant']},
+    {type:'word',jp:'徹底的な',en:'thorough',opts:['thorough','payroll','exceptional','coverage']},
+    {type:'word',jp:'～経由で',en:'via',opts:['exceptional','plastic bag','inspect','via']},
+    {type:'word',jp:'職場',en:'workplace',opts:['retail','workplace','exceptional','ensure']}
+  ],
+  [
+    {type:'word',jp:'宿泊施設',en:'accommodations',opts:['productivity','retail','vacuum cleaner','accommodations']},
+    {type:'word',jp:'柔軟な',en:'flexible',opts:['inspect','flexible','light bulb','promptly']},
+    {type:'word',jp:'予測する',en:'predict',opts:['relocate','reliable','consumer','predict']},
+    {type:'word',jp:'好み、希望',en:'preference',opts:['promotional','patron','preference','flexible']},
+    {type:'word',jp:'かなりの',en:'substantial',opts:['via','paperwork','substantial','venue']},
+    {type:'word',jp:'利用しやすい、アクセス可能な',en:'accessible',opts:['reliable','mobile phone','accessible','appliance']},
+    {type:'word',jp:'報道、補償、範囲',en:'coverage',opts:['imply','coverage','renowned','bookcase']},
+    {type:'word',jp:'生み出す',en:'generate',opts:['generate','contribute','reliable','agenda']},
+    {type:'word',jp:'軽食、飲み物',en:'refreshment',opts:['refreshment','folding chair','appliance','treadmill']},
+    {type:'word',jp:'信頼できる',en:'reliable',opts:['reliable','directory','washing machine','stapler']}
+  ],
+  [
+    {type:'word',jp:'収益',en:'revenue',opts:['tourism','drape','revenue','notify']},
+    {type:'word',jp:'資金調達',en:'fund-raising',opts:['grocery','fund-raising','architect','plastic bag']},
+    {type:'word',jp:'熟練した、達成された',en:'accomplished',opts:['accomplished','scarf','complimentary','orientation']},
+    {type:'word',jp:'取得する',en:'acquire',opts:['circulation','notify','acquire','questionnaire']},
+    {type:'word',jp:'それに応じて',en:'accordingly',opts:['accordingly','beverage','questionnaire','accessible']},
+    {type:'word',jp:'冷蔵庫',en:'refrigerator',opts:['inn','refrigerator','appliance','profession']},
+    {type:'word',jp:'電子レンジ',en:'microwave oven',opts:['microwave oven','light fixture','bookcase','expire']},
+    {type:'word',jp:'コンロ',en:'stove',opts:['exceed','stove','qualified','rechargeable battery']},
+    {type:'word',jp:'エアコン',en:'air conditioner',opts:['air conditioner','productivity','laptop','innovative']},
+    {type:'word',jp:'暖房器具',en:'heater',opts:['install','heater','wildlife','quarterly']}
+  ],
+  [
+    {type:'word',jp:'掃除機',en:'vacuum cleaner',opts:['valid','vacuum cleaner','grocery','negotiate']},
+    {type:'word',jp:'洗濯機',en:'washing machine',opts:['consumer','ingredient','washing machine','revolving door']},
+    {type:'word',jp:'電球',en:'light bulb',opts:['beverage','storage','ensure','light bulb']},
+    {type:'word',jp:'本棚',en:'bookcase',opts:['bookcase','tourism','profession','scarf']},
+    {type:'word',jp:'洗剤',en:'laundry detergent',opts:['laundry detergent','envelope','tourism','luncheon']},
+    {type:'word',jp:'照明器具',en:'light fixture',opts:['light fixture','administrative','assign','circulation']},
+    {type:'word',jp:'ホッチキス',en:'stapler',opts:['stapler','orientation','envelope','vendor']},
+    {type:'word',jp:'日焼け止め',en:'sunscreen',opts:['exceed','preference','sunscreen','prior']},
+    {type:'word',jp:'封筒',en:'envelope',opts:['specialize','banquet','vacuum cleaner','envelope']},
+    {type:'word',jp:'はかり',en:'scale',opts:['acquire','rug','revolving door','scale']}
+  ],
+  [
+    {type:'word',jp:'食器棚',en:'cupboard',opts:['ingredient','cupboard','certificate','payroll']},
+    {type:'word',jp:'はさみ',en:'scissors',opts:['agenda','stove','scissors','quarterly']},
+    {type:'word',jp:'文房具',en:'stationery',opts:['inspect','stationery','scarf','exceptional']},
+    {type:'word',jp:'ビニール袋',en:'plastic bag',opts:['cardboard box','administrative','plastic bag','stove']},
+    {type:'word',jp:'折りたたみ椅子',en:'folding chair',opts:['folding chair','evaluate','workplace','cupboard']},
+    {type:'word',jp:'段ボール箱',en:'cardboard box',opts:['grocery','cardboard box','accessible','light fixture']},
+    {type:'word',jp:'じゅうたん',en:'rug',opts:['thorough','rug','laptop','submission']},
+    {type:'word',jp:'厚手のカーテン',en:'drape',opts:['payroll','heater','drape','promptly']},
+    {type:'word',jp:'マフラー、スカーフ',en:'scarf',opts:['via','notify','scarf','thorough']},
+    {type:'word',jp:'ノートPC',en:'laptop',opts:['beverage','contribute','imply','laptop']}
+  ],
+  [
+    {type:'word',jp:'携帯電話',en:'mobile phone',opts:['extensive','promotional','mobile phone','supervisor']},
+    {type:'word',jp:'コピー機',en:'photocopier',opts:['stationery','light bulb','photocopier','air conditioner']},
+    {type:'word',jp:'充電池',en:'rechargeable battery',opts:['scissors','predict','specialize','rechargeable battery']},
+    {type:'word',jp:'書類かばん',en:'briefcase',opts:['relocate','light fixture','revenue','briefcase']},
+    {type:'word',jp:'回転ドア',en:'revolving door',opts:['revolving door','folding chair','lately','extensive']},
+    {type:'word',jp:'貨物用エレベーター',en:'freight elevator',opts:['ingredient','grocery','assembly','freight elevator']},
+    {type:'word',jp:'ランニングマシン',en:'treadmill',opts:['treadmill','competitive','substantial','ingredient']}
+  ]
+  ]
 };
 
 LEVELS.push(TOEIC_600);

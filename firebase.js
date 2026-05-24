@@ -96,12 +96,12 @@ async function getWeekRanking() {
   }
 }
 
-/* 全ユーザーランキング取得（累計XP順） */
+/* 全ユーザーランキング取得（累計XP順・XP=0除外） */
 async function getAllRanking() {
   try {
     const q = query(collection(db, 'le2_users'), orderBy('totalXp', 'desc'));
     const snap = await getDocs(q);
-    return snap.docs.map(d => d.data());
+    return snap.docs.map(d => d.data()).filter(u => (u.totalXp || 0) > 0);
   } catch(e) {
     console.warn('Ranking fetch failed:', e);
     return [];
