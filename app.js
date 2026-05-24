@@ -435,9 +435,16 @@ function saveState() {
   state.lastDate = getTodayStr();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   // Firebaseに週間XP・累積XP・メダルを同期
-  if (window.FB2 && window.FB2.isRegistered()) {
-    window.FB2.syncToFirebase(state.totalXp, state.xp, state.masterWeekScore || 0);
+  // FB2がまだロードされていない場合はリトライ（ESモジュール遅延対策）
+  function trySyncFirebase(retry) {
+    if (retry === undefined) retry = 0;
+    if (window.FB2 && window.FB2.isRegistered()) {
+      window.FB2.syncToFirebase(state.totalXp, state.xp, state.masterWeekScore || 0);
+    } else if (retry < 15) {
+      setTimeout(function() { trySyncFirebase(retry + 1); }, 300);
+    }
   }
+  trySyncFirebase();
 }
 
 function getTodayStr() {
