@@ -434,8 +434,7 @@ function getMondayStr() {
 function saveState() {
   state.lastDate = getTodayStr();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  // Firebaseに週間XP・累積XP・メダルを同期
-  // FB2がまだロードされていない場合はリトライ（ESモジュール遅延対策）
+  // Firebaseに週間XP・累積XP・メダルを同期（ESモジュール遅延対策リトライ付き）
   function trySyncFirebase(retry) {
     if (retry === undefined) retry = 0;
     if (window.FB2 && window.FB2.isRegistered()) {
@@ -521,7 +520,7 @@ function updateTopBar() {
   const sp = document.getElementById('streakPill');
   if (sp) {
     if (state.streak > 0) {
-      sp.innerHTML = `<div class="streak-pill-fire"></div><span class="streak-pill-text">🔥 ${state.todayStudied ? state.streak + 1 : state.streak}日連続！</span>`;
+      sp.innerHTML = `<div class="streak-pill-fire"></div><span class="streak-pill-text">🔥 ${state.streak}日連続！</span>`;
       sp.style.display = 'inline-flex';
     } else {
       sp.style.display = 'none';
@@ -2879,7 +2878,7 @@ function showStats() {
 
     <div class="stats-grid">
       <div class="stats-cell">
-        <div class="stats-cell-val">${state.todayStudied ? state.streak + 1 : state.streak}</div>
+        <div class="stats-cell-val">${state.streak}</div>
         <div class="stats-cell-label"><i class="ti ti-flame"></i> 連続日数</div>
       </div>
       <div class="stats-cell">
