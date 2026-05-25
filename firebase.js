@@ -78,7 +78,26 @@ async function syncToFirebase(totalXp, weekXp, masterWeekScore, extra) {
       if (extra.cefrLevel !== undefined) data.cefrLevel = extra.cefrLevel;
       if (extra.studyHours !== undefined) data.studyHours = extra.studyHours;
     }
-    await updateDoc(ref, data);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      await updateDoc(ref, data);
+    } else {
+      // ドキュメントが存在しない場合は新規作成
+      await setDoc(ref, {
+        uid,
+        nickname: localStorage.getItem('le2_nickname') || '',
+        totalXp: totalXp || 0,
+        weekXp: weekXp || 0,
+        masterWeekScore: masterWeekScore || 0,
+        weekStart: getMondayStr(),
+        streak: 0,
+        medals: 0,
+        cefrLevel: '',
+        studyHours: 0,
+        updatedAt: Date.now(),
+        ...data
+      });
+    }
   } catch(e) {
     console.warn('Firebase sync failed:', e);
   }
